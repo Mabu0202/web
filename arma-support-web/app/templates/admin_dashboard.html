@@ -1,0 +1,51 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Übersicht</h1>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="text-muted small">Users</div>
+        <div class="display-6">{{ users_count }}</div>
+        <a class="btn btn-outline-primary btn-sm mt-2" href="/admin/users">User verwalten</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="text-muted small">Rollen</div>
+        <div class="display-6">{{ roles_count }}</div>
+        <a class="btn btn-outline-primary btn-sm mt-2" href="/admin/roles">Rollen verwalten</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="text-muted small">Tabellen</div>
+        <div class="display-6">{{ tables_count }}</div>
+        <a class="btn btn-outline-primary btn-sm mt-2" href="/tables">Zu den Tabellen</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="h6">Quick Start</h2>
+    <ol class="mb-0">
+      <li>Rolle <b>editor</b> anlegen</li>
+      <li>In <b>Rechte</b> für editor: View/Create/Update/Delete setzen</li>
+      <li>In <b>User</b> neue Accounts anlegen und editor zuweisen</li>
+    </ol>
+  </div>
+</div>
+
+{% endblock %}

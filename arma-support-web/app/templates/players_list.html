@@ -1,0 +1,37 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Spieler</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="/admin">Zurück</a>
+</div>
+
+<div class="card">
+  <div class="card-body table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>UID</th>
+          <th>Name</th>
+          <th class="text-end" style="width:120px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in players %}
+          <tr>
+            <td><code>{{ p.uid }}</code></td>
+            <td class="fw-semibold">{{ p.name or "—" }}</td>
+            <td class="text-end">
+              <a class="btn btn-outline-primary btn-sm" href="/admin/players/{{ p.uid }}">Info</a>
+            </td>
+          </tr>
+        {% endfor %}
+        {% if not players %}
+          <tr><td colspan="3" class="text-muted">Keine Spieler gefunden.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

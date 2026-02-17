@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h4 mb-3">Tabellen</h1>
+<div class="list-group">
+  {% for t in tables %}
+    <a class="list-group-item list-group-item-action" href="/table/{{ t }}">{{ t }}</a>
+  {% else %}
+    <div class="text-muted">Keine Tabellen sichtbar (keine View-Rechte).</div>
+  {% endfor %}
+</div>
+{% endblock %}

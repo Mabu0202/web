@@ -1,0 +1,208 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Rechte</h1>
+</div>
+<div class="alert alert-info">admin_permissions.html lädt ✅</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" action="/admin/permissions" class="row g-2 align-items-end">
+      <div class="col-md-6">
+        <label class="form-label small">Rolle auswählen</label>
+        <select class="form-select" name="role_id" onchange="this.form.submit()">
+          {% for r in roles %}
+            <option value="{{ r.id }}" {% if r.id == selected_role_id %}selected{% endif %}>
+              {{ r.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6 text-muted small">
+        Rolle <code>admin</code> ist vorkonfiguriert (darf immer ins Admin-Panel).
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body table-responsive">
+
+    <form method="post"
+          action="/admin/permissions/save"
+          onsubmit="return confirmSubmit(this, 'Rechte wirklich speichern?');">
+
+      <input type="hidden" name="role_id" value="{{ selected_role_id }}"/>
+
+      <!-- ===================================================== -->
+      <!-- Admin Panel Rechte -->
+      <!-- ===================================================== -->
+      <div class="border rounded p-3 mb-4 bg-white">
+        <div class="d-flex align-items-center justify-content-between">
+          <h2 class="h6 mb-0">Admin Panel Rechte</h2>
+          <div class="text-muted small">Steuert /admin/* Funktionen</div>
+        </div>
+
+        {% set ap = admin_panel_perms or {} %}
+
+        <div class="row g-2 mt-2">
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="ap__admin_access"
+                     {% if ap.get("admin_access") %}checked{% endif %}>
+              <label class="form-check-label">Admin Panel Zugriff</label>
+              <div class="text-muted small">Ohne dieses Recht kommt man nicht ins /admin (außer Rolle admin).</div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="ap__user_create"
+                     {% if ap.get("user_create") %}checked{% endif %}>
+              <label class="form-check-label">User anlegen</label>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="ap__user_toggle"
+                     {% if ap.get("user_toggle") %}checked{% endif %}>
+              <label class="form-check-label">Aktiv / Inaktiv</label>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="ap__user_role_add"
+                     {% if ap.get("user_role_add") %}checked{% endif %}>
+              <label class="form-check-label">User Rolle hinzufügen</label>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="ap__user_role_remove"
+                     {% if ap.get("user_role_remove") %}checked{% endif %}>
+              <label class="form-check-label">User Rolle entfernen</label>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="ap__role_create"
+                     {% if ap.get("role_create") %}checked{% endif %}>
+              <label class="form-check-label">Rollen anlegen</label>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="ap__permissions_edit"
+                     {% if ap.get("permissions_edit") %}checked{% endif %}>
+              <label class="form-check-label">Rechte vergeben</label>
+              <div class="text-muted small">Darf diese Seite hier bearbeiten & speichern.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- Tabellenrechte Bulk Buttons -->
+      <!-- ===================================================== -->
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="permAll(false)">Alles aus</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="permAll(true)">Alles an</button>
+        <div class="vr"></div>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="permViewOnly()">Nur View</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="permCrud(true)">CRUD an</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="permCrud(false)">CRUD aus</button>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- Tabellenrechte -->
+      <!-- ===================================================== -->
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Tabelle</th>
+            <th class="text-center">View</th>
+            <th class="text-center">Create</th>
+            <th class="text-center">Update</th>
+            <th class="text-center">Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for t in tables %}
+          {% set p = perms.get(t, {"view":False,"create":False,"update":False,"delete":False}) %}
+          <tr>
+            <td class="fw-semibold">{{ t }}</td>
+
+            <td class="text-center">
+              <input type="checkbox"
+                     class="perm perm-view"
+                     name="{{ t }}__view"
+                     {% if p["view"] %}checked{% endif %}>
+            </td>
+
+            <td class="text-center">
+              <input type="checkbox"
+                     class="perm perm-create"
+                     name="{{ t }}__create"
+                     {% if p["create"] %}checked{% endif %}>
+            </td>
+
+            <td class="text-center">
+              <input type="checkbox"
+                     class="perm perm-update"
+                     name="{{ t }}__update"
+                     {% if p["update"] %}checked{% endif %}>
+            </td>
+
+            <td class="text-center">
+              <input type="checkbox"
+                     class="perm perm-delete"
+                     name="{{ t }}__delete"
+                     {% if p["delete"] %}checked{% endif %}>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
+      <button class="btn btn-primary btn-sm">Speichern</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function permAll(on) {
+    document.querySelectorAll('input.perm[type="checkbox"]').forEach(cb => cb.checked = on);
+  }
+
+  function permSelectColumn(col, on) {
+    document.querySelectorAll('input.perm-' + col).forEach(cb => cb.checked = on);
+  }
+
+  function permViewOnly() {
+    permSelectColumn('view', true);
+    permSelectColumn('create', false);
+    permSelectColumn('update', false);
+    permSelectColumn('delete', false);
+  }
+
+  function permCrud(on) {
+    if (on) {
+      permSelectColumn('view', true);
+      permSelectColumn('create', true);
+      permSelectColumn('update', true);
+      permSelectColumn('delete', true);
+    } else {
+      permSelectColumn('create', false);
+      permSelectColumn('update', false);
+      permSelectColumn('delete', false);
+    }
+  }
+</script>
+
+{% endblock %}

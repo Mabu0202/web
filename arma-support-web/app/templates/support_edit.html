@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Supportfall #{{ case.id }}</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="/admin/players/{{ uid }}?tab=support">Zurück</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" action="/admin/players/{{ uid }}/support/{{ case.id }}/update"
+          onsubmit="return confirmSubmit(this,'Supportfall speichern?');" class="row g-2">
+
+      <div class="col-md-4">
+        <label class="form-label small">Case Type</label>
+        <input class="form-control form-control-sm" name="case_type" value="{{ case.case_type }}" required>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small">Supporter</label>
+        <input class="form-control form-control-sm" name="supporter_name" value="{{ case.supporter_name }}" required>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small">Area</label>
+        <input class="form-control form-control-sm" name="area" value="{{ case.area }}">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small">SCN</label>
+        <input class="form-control form-control-sm" name="scn" value="{{ case.scn }}">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small">Status</label>
+        <select class="form-select form-select-sm" name="status">
+          <option value="open" {% if case.status=='open' %}selected{% endif %}>open</option>
+          <option value="closed" {% if case.status=='closed' %}selected{% endif %}>closed</option>
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label small">Content</label>
+        <textarea class="form-control form-control-sm" rows="8" name="content">{{ case.content }}</textarea>
+      </div>
+
+      <div class="col-12">
+        <button class="btn btn-primary btn-sm">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

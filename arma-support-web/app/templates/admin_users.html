@@ -1,0 +1,122 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">User</h1>
+</div>
+
+{% if panel_perms["user_create"] %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h2 class="h6">User anlegen</h2>
+
+    <!-- OPTIONAL: Confirm beim Anlegen -->
+    <form class="row g-2" method="post" action="/admin/users/create"
+          onsubmit="return confirmSubmit(this, 'User wirklich anlegen?');">
+      <div class="col-md-4">
+        <input class="form-control form-control-sm" name="username" placeholder="username" required>
+      </div>
+      <div class="col-md-4">
+        <input class="form-control form-control-sm" type="password" name="password" placeholder="Passwort (min. 8)" required>
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-primary btn-sm">Anlegen</button>
+      </div>
+    </form>
+
+    <!-- Wenn du KEIN Confirm beim Anlegen willst, nimm stattdessen diese Form:
+    <form class="row g-2" method="post" action="/admin/users/create">
+      ...
+    </form>
+    -->
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-body table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Status</th>
+          <th>Rollen</th>
+          <th style="width: 460px" class="text-end">Aktionen</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for u in users %}
+        <tr>
+          <td class="fw-semibold">{{ u.username }}</td>
+
+          <td>
+            {% if u.is_active %}
+              <span class="badge text-bg-success">aktiv</span>
+            {% else %}
+              <span class="badge text-bg-secondary">inaktiv</span>
+            {% endif %}
+          </td>
+
+          <td>
+            {% set rs = role_map.get(u.id, []) %}
+            {% if rs %}
+              {% for rr in rs %}
+                <span class="badge text-bg-light border">{{ rr.name }}</span>
+              {% endfor %}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+
+          <td class="text-end">
+
+            {% if panel_perms["user_toggle"] %}
+            <!-- Confirm: Aktiv/Inaktiv -->
+            <form class="d-inline"
+                  method="post"
+                  action="/admin/users/{{ u.id }}/toggle"
+                  onsubmit="return confirmSubmit(this, 'User Status wirklich ändern?');">
+              <button class="btn btn-outline-secondary btn-sm">Aktiv/Inaktiv</button>
+            </form>
+            {% endif %}
+
+            {% if panel_perms["user_role_add"] %}
+            <!-- Rolle hinzufügen: ohne Confirm -->
+            <form class="d-inline" method="post" action="/admin/users/{{ u.id }}/roles/add">
+              <select class="form-select form-select-sm d-inline-block" style="width:160px" name="role_id" required>
+                <option value="" selected disabled>Rolle hinzufügen…</option>
+                {% for r in roles %}
+                  <option value="{{ r.id }}">{{ r.name }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn btn-outline-primary btn-sm">+</button>
+            </form>
+            {% endif %}
+
+            {% if panel_perms["user_role_remove"] %}
+            <!-- Confirm: Rolle entfernen -->
+            <form class="d-inline"
+                  method="post"
+                  action="/admin/users/{{ u.id }}/roles/remove"
+                  onsubmit="return confirmSubmit(this, 'Rolle wirklich entfernen?');">
+              <select class="form-select form-select-sm d-inline-block" style="width:160px" name="role_id" required>
+                <option value="" selected disabled>Rolle entfernen…</option>
+                {% for r in roles %}
+                  <option value="{{ r.id }}">{{ r.name }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn btn-outline-danger btn-sm">–</button>
+            </form>
+            {% endif %}
+
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+
+{% endblock %}

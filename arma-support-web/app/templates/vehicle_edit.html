@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Fahrzeug #{{ v.id }}</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="/admin/players/{{ v.pid }}?tab=vehicles">Zurück</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-body">
+        <form method="post" action="/admin/players/vehicles/{{ v.id }}/update"
+              onsubmit="return confirmSubmit(this,'Fahrzeug speichern?');" class="row g-2">
+
+          <div class="col-md-3">
+            <label class="form-label small">Alive</label>
+            <input class="form-control form-control-sm" name="alive" value="{{ v.alive }}">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label small">Active</label>
+            <input class="form-control form-control-sm" name="active" value="{{ v.active }}">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label small">Sold</label>
+            <input class="form-control form-control-sm" name="sold" value="{{ v.sold }}">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label small">Locked</label>
+            <input class="form-control form-control-sm" name="locked" value="{{ v.locked }}">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label small">Color</label>
+            <input class="form-control form-control-sm" name="color" value="{{ v.color }}">
+          </div>
+
+          <div class="col-12">
+            <label class="form-label small">Trunk</label>
+            <textarea class="form-control form-control-sm" rows="10" name="trunk">{{ v.trunk }}</textarea>
+          </div>
+
+          <div class="col-12">
+            <button class="btn btn-primary btn-sm">Speichern</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6">Quick Actions</h2>
+
+        <div class="d-grid gap-2">
+          <form method="post" action="/admin/players/vehicles/{{ v.id }}/qa/restore"
+                onsubmit="return confirmSubmit(this,'Restore?');">
+            <button class="btn btn-outline-primary btn-sm w-100">Restore</button>
+          </form>
+
+          <div class="row g-2">
+            <div class="col-6">
+              <form method="post" action="/admin/players/vehicles/{{ v.id }}/qa/lock"
+                    onsubmit="return confirmSubmit(this,'Lock?');">
+                <button class="btn btn-outline-secondary btn-sm w-100">Lock</button>
+              </form>
+            </div>
+            <div class="col-6">
+              <form method="post" action="/admin/players/vehicles/{{ v.id }}/qa/unlock"
+                    onsubmit="return confirmSubmit(this,'Unlock?');">
+                <button class="btn btn-outline-secondary btn-sm w-100">Unlock</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="row g-2">
+            <div class="col-6">
+              <form method="post" action="/admin/players/vehicles/{{ v.id }}/qa/sell"
+                    onsubmit="return confirmSubmit(this,'Sell?');">
+                <button class="btn btn-outline-warning btn-sm w-100">Sell</button>
+              </form>
+            </div>
+            <div class="col-6">
+              <form method="post" action="/admin/players/vehicles/{{ v.id }}/qa/unsell"
+                    onsubmit="return confirmSubmit(this,'Unsell?');">
+                <button class="btn btn-outline-warning btn-sm w-100">Unsell</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="row g-2">
+            <div class="col-6">
+              <form method="post" action="/admin/players/vehicles/{{ v.id }}/qa/kill"
+                    onsubmit="return confirmSubmit(this,'Kill?');">
+                <button class="btn btn-outline-danger btn-sm w-100">Kill</button>
+              </form>
+            </div>
+            <div class="col-6">
+              <form method="post" action="/admin/players/vehicles/{{ v.id }}/qa/revive"
+                    onsubmit="return confirmSubmit(this,'Revive?');">
+                <button class="btn btn-outline-success btn-sm w-100">Revive</button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

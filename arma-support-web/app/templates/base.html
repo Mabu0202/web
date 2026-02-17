@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <title>{{ title or "DB Admin" }}</title>
+
+  <style>
+    /* Toast Slide/Fade Animation */
+    .toast-pop { animation: toastIn 220ms ease-out; }
+    @keyframes toastIn {
+      from { transform: translateX(16px); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+    .toast-out { animation: toastOut 200ms ease-in forwards; }
+    @keyframes toastOut {
+      from { transform: translateX(0); opacity: 1; }
+      to   { transform: translateX(16px); opacity: 0; }
+    }
+    /* Transparenter Glas-Toast */
+.toast.text-bg-success,
+.toast.text-bg-danger,
+.toast.text-bg-warning,
+.toast.text-bg-info {
+  background-color: rgba(25, 135, 84, 0.85) !important;   /* Default fallback */
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Einzelne Farben sauber definieren */
+.toast.text-bg-success {
+  background-color: rgba(25, 135, 84, 0.75) !important;
+}
+
+.toast.text-bg-danger {
+  background-color: rgba(220, 53, 69, 0.75) !important;
+}
+
+.toast.text-bg-warning {
+  background-color: rgba(255, 193, 7, 0.75) !important;
+  color: #000 !important;
+}
+
+.toast.text-bg-info {
+  background-color: rgba(13, 202, 240, 0.75) !important;
+  color: #000 !important;
+}
+
+  </style>
+</head>
+
+<body class="bg-light">
+<nav class="navbar navbar-expand-lg bg-white border-bottom">
+  <div class="container">
+    <a class="navbar-brand" href="/tables">DB Admin</a>
+    <a class="btn btn-outline-secondary btn-sm" href="/admin">Admin</a>
+    <a class="btn btn-outline-secondary btn-sm" href="/admin/players">Spieler</a>
+    <div class="ms-auto d-flex gap-2">
+      <form method="post" action="/logout">
+        <button class="btn btn-outline-secondary btn-sm">Logout</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  {% block content %}{% endblock %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Global Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Bitte bestätigen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+      </div>
+      <div class="modal-body" id="confirmModalText">Bist du sicher?</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="button" class="btn btn-danger" id="confirmModalOk">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Confirm helper: ersetzt onsubmit="return confirm(...)"
+  let _confirmForm = null;
+  const _confirmModalEl = document.getElementById('confirmModal');
+  const _confirmModal = _confirmModalEl ? new bootstrap.Modal(_confirmModalEl) : null;
+
+  function confirmSubmit(formEl, text) {
+    _confirmForm = formEl;
+    document.getElementById('confirmModalText').textContent = text || "Bist du sicher?";
+    _confirmModal.show();
+    return false; // verhindert submit bis OK gedrückt
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const okBtn = document.getElementById('confirmModalOk');
+    okBtn.addEventListener('click', () => {
+      if (_confirmForm) _confirmForm.submit();
+      _confirmModal.hide();
+    });
+  });
+
+  // Toast dismiss
+  function toastDismiss(btn) {
+    const t = btn.closest('.toast');
+    t.classList.add('toast-out');
+    setTimeout(() => t.remove(), 220);
+  }
+</script>
+
+{% if request.session.get("flash") %}
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+  {% for msg in request.session.get("flash") %}
+    {% set cat = msg.category %}
+    {% if cat == "success" %}
+      {% set icon = "bi-check-circle-fill" %}
+    {% elif cat == "info" %}
+      {% set icon = "bi-info-circle-fill" %}
+    {% elif cat == "warning" %}
+      {% set icon = "bi-exclamation-triangle-fill" %}
+    {% else %}
+      {% set icon = "bi-x-circle-fill" %}
+    {% endif %}
+
+    <div class="toast toast-pop align-items-center text-bg-{{ cat }} border-0 show mb-2" role="alert">
+      <div class="d-flex">
+        <div class="toast-body">
+          <i class="bi {{ icon }} me-2"></i>
+          {{ msg.message }}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                onclick="toastDismiss(this)"></button>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% set _ = request.session.pop("flash") %}
+
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+  {% with messages = request.session.get("flash", []) %}
+    {% for m in messages %}
+      <div class="toast show align-items-center text-bg-{{ m.category }} border-0 mb-2">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ m.message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                  onclick="this.closest('.toast').remove()"></button>
+        </div>
+      </div>
+    {% endfor %}
+    {% set _ = request.session.pop("flash", None) %}
+  {% endwith %}
+</div>
+
+<script>
+  // Auto-close nach 3s mit Fade-Out
+  setTimeout(() => {
+    document.querySelectorAll('.toast').forEach(t => {
+      t.classList.add('toast-out');
+      setTimeout(() => t.remove(), 220);
+    });
+  }, 3000);
+</script>
+{% endif %}
+
+</body>
+</html>

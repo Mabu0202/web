@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="h4 mb-0">Tabelle: {{ table }}</h1>
+    <div class="alert alert-info small">
+      DEBUG perms: view={{ perms["view"] }}, create={{ perms["create"] }}, update={{ perms["update"] }}, delete={{ perms["delete"] }}
+    </div>
+
+    {% if warning %}
+      <div class="alert alert-warning mt-3">
+        {{ warning }}
+      </div>
+    {% endif %}
+
+    <div class="text-muted small">
+      PK: {{ pks|join(", ") if pks else "— (kein PK)" }}
+    </div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="/tables">Zurück</a>
+</div>
+
+{% if perms["create"] %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h2 class="h6">Neue Zeile</h2>
+    <form method="post" action="/table/{{ table }}/create" class="row g-2">
+      {% for c in cols %}
+        <div class="col-md-3">
+          <input class="form-control form-control-sm" name="{{ c }}" placeholder="{{ c }}">
+        </div>
+      {% endfor %}
+      <div class="col-12">
+        <button class="btn btn-primary btn-sm">Einfügen</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-body table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          {% for c in cols %}
+            <th>{{ c }}</th>
+          {% endfor %}
+          {% if perms["update"] or perms["delete"] %}
+            <th style="width:180px"></th>
+          {% endif %}
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for r in rows %}
+        <tr>
+
+          {% if perms["update"] %}
+          <form method="post" action="/table/{{ table }}/update">
+          {% endif %}
+
+            {% for pk in pks %}
+              <input type="hidden" name="pk_{{ pk }}" value="{{ r[pk] }}">
+            {% endfor %}
+
+            {% for c in cols %}
+              <td>
+                {% if perms["update"] %}
+                  <input class="form-control form-control-sm"
+                         name="{{ c }}"
+                         value="{{ r[c] }}">
+                {% else %}
+                  {{ r[c] }}
+                {% endif %}
+              </td>
+            {% endfor %}
+
+            {% if perms["update"] or perms["delete"] %}
+            <td class="text-end">
+
+              {% if perms["update"] %}
+                <button type="submit" class="btn btn-outline-primary btn-sm me-1">
+                  Speichern
+                </button>
+              {% endif %}
+
+              {% if perms["update"] %}
+              </form>
+              {% endif %}
+
+              {% if perms["delete"] %}
+                <form method="post"
+                      action="/table/{{ table }}/delete"
+                      class="d-inline"
+                      onsubmit="return confirmSubmit(this, 'Wirklich löschen?');">
+                  {% for pk in pks %}
+                    <input type="hidden" name="pk_{{ pk }}" value="{{ r[pk] }}">
+                  {% endfor %}
+                  <button class="btn btn-outline-danger btn-sm">
+                    Löschen
+                  </button>
+                </form>
+              {% endif %}
+
+            </td>
+            {% endif %}
+
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

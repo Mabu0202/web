@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="h4 mb-0">Spieler: {{ player_name }}</h1>
+    <div class="text-muted small">UID: <code>{{ uid }}</code></div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="/admin/players">Zurück</a>
+</div>
+
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <a class="nav-link {% if tab=='info' %}active{% endif %}" href="/admin/players/{{ uid }}?tab=info">Info</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if tab=='support' %}active{% endif %}" href="/admin/players/{{ uid }}?tab=support">Supportakte</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if tab=='gear' %}active{% endif %}" href="/admin/players/{{ uid }}?tab=gear">Gear / Licenses</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if tab=='vehicles' %}active{% endif %}" href="/admin/players/{{ uid }}?tab=vehicles">Fahrzeuge</a>
+  </li>
+</ul>
+
+{% if tab == "info" %}
+
+<div class="row g-3">
+
+  {% set fields = [
+    "name","level","pt","cash","bank",
+    "address","town","birthday",
+    "birthlocation","eyecolor","height"
+  ] %}
+
+  {% for s in [0,1,2] %}
+    {% set r = info_map.get(s) %}
+
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-body">
+
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h6 mb-0">{{ side_label[s] }}</h2>
+            <span class="badge text-bg-light border">side={{ s }}</span>
+          </div>
+
+          <form method="post"
+                action="/admin/players/{{ uid }}/info/save/{{ s }}"
+                onsubmit="return confirmSubmit(this, 'Änderungen für {{ side_label[s] }} speichern?');">
+
+            {% for f in fields %}
+              <div class="mb-2">
+                <label class="form-label small">{{ f|capitalize }}</label>
+
+                <input class="form-control form-control-sm"
+                       name="{{ f }}"
+                       value="{{ r[f] if r and r[f] else '' }}"
+                       placeholder="—"
+                       {% if not editable[s][f] %}disabled{% endif %}>
+
+                {% if not editable[s][f] %}
+                  <div class="text-muted small mt-1">Keine Berechtigung</div>
+                {% endif %}
+              </div>
+            {% endfor %}
+
+            <div class="d-flex justify-content-end">
+              <button class="btn btn-outline-primary btn-sm" type="submit">
+                Speichern
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+  {% endfor %}
+</div>
+
+{% elif tab == "gear" %}
+
+<div class="row g-3">
+  {% for s in [0,1,2] %}
+    {% set g = gear_map.get(s) %}
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{{ side_label[s] }}</h2>
+
+          <label class="form-label small">Licenses</label>
+          <pre class="small bg-light p-2 rounded border" style="white-space: pre-wrap;">{{ g.licenses if g and g.licenses else "—" }}</pre>
+
+          <label class="form-label small">Gear</label>
+          <pre class="small bg-light p-2 rounded border" style="white-space: pre-wrap;">{{ g.gear if g and g.gear else "—" }}</pre>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% elif tab == "support" %}
+
+<div class="card mb-3">
+  <div class="card-body">
+    <h2 class="h6">Neuer Supportfall</h2>
+    <form method="post" action="/admin/players/{{ uid }}/support/create" class="row g-2"
+          onsubmit="return confirmSubmit(this, 'Supportfall erstellen?');">
+      <div class="col-md-3">
+        <input class="form-control form-control-sm" name="case_type" placeholder="Case Type" required>
+      </div>
+      <div class="col-md-3">
+        <input class="form-control form-control-sm" name="supporter_name" placeholder="Supporter Name" required>
+      </div>
+      <div class="col-md-2">
+        <input class="form-control form-control-sm" name="area" value="Support">
+      </div>
+      <div class="col-md-2">
+        <input class="form-control form-control-sm" name="scn" placeholder="SCN">
+      </div>
+      <div class="col-md-12">
+        <textarea class="form-control form-control-sm" name="content" rows="3" placeholder="Inhalt..."></textarea>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary btn-sm">Anlegen</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Type</th>
+          <th>Area</th>
+          <th>Supporter</th>
+          <th>Status</th>
+          <th>Updated</th>
+          <th style="width:260px"></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for c in support_cases %}
+        <tr>
+          <td>{{ c.id }}</td>
+          <td>{{ c.case_type }}</td>
+          <td>{{ c.area }}</td>
+          <td>{{ c.supporter_name }}</td>
+          <td>
+            {% if c.status == "open" %}
+              <span class="badge text-bg-success">open</span>
+            {% else %}
+              <span class="badge text-bg-secondary">closed</span>
+            {% endif %}
+          </td>
+          <td class="small text-muted">{{ c.updated_at }}</td>
+          <td class="text-end">
+            <a class="btn btn-outline-primary btn-sm" href="/admin/players/{{ uid }}/support/{{ c.id }}/edit">Bearbeiten</a>
+
+            <form class="d-inline" method="post" action="/admin/players/{{ uid }}/support/{{ c.id }}/toggle-status"
+                  onsubmit="return confirmSubmit(this,'Status ändern?');">
+              <button class="btn btn-outline-secondary btn-sm">Status</button>
+            </form>
+
+            <form class="d-inline" method="post" action="/admin/players/{{ uid }}/support/{{ c.id }}/delete"
+                  onsubmit="return confirmSubmit(this,'Wirklich löschen?');">
+              <button class="btn btn-outline-danger btn-sm">Löschen</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% elif tab == "vehicles" %}
+
+<div class="card">
+  <div class="card-body table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Classname</th>
+          <th>Type</th>
+          <th>Side</th>
+          <th>Alive</th>
+          <th>Active</th>
+          <th>Sold</th>
+          <th>Locked</th>
+          <th>Modified</th>
+          <th style="width:120px"></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for v in vehicles %}
+        <tr>
+          <td>{{ v.id }}</td>
+          <td>{{ v.classname }}</td>
+          <td>{{ v.type }}</td>
+          <td>{{ v.side }}</td>
+          <td>{{ v.alive }}</td>
+          <td>{{ v.active }}</td>
+          <td>{{ v.sold }}</td>
+          <td>{{ v.locked }}</td>
+          <td class="small text-muted">{{ v.ts_modified }}</td>
+          <td class="text-end">
+            <a class="btn btn-outline-primary btn-sm" href="/admin/players/vehicles/{{ v.id }}">Edit</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endif %}
+
+{% endblock %}

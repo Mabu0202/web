@@ -1,0 +1,48 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Rollen</h1>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <h2 class="h6">Rolle anlegen</h2>
+
+    <!-- OPTIONAL: Confirm beim Anlegen -->
+    <form class="row g-2" method="post" action="/admin/roles/create"
+          onsubmit="return confirmSubmit(this, 'Rolle wirklich anlegen?');">
+      <div class="col-md-6">
+        <input class="form-control form-control-sm" name="name" placeholder="z.B. editor" required>
+      </div>
+      <div class="col-md-6">
+        <button class="btn btn-primary btn-sm">Anlegen</button>
+      </div>
+    </form>
+
+    <!-- Wenn du KEIN Confirm willst, nimm stattdessen:
+    <form class="row g-2" method="post" action="/admin/roles/create">
+      ...
+    </form>
+    -->
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <ul class="list-group">
+      {% for r in roles %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>{{ r.name }}</span>
+          <span class="text-muted small">ID: {{ r.id }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <div class="text-muted small mt-2">
+      Hinweis: Rolle <code>admin</code> ist Superuser (darf alles ohne Einträge in Rechte).
+    </div>
+  </div>
+</div>
+
+{% endblock %}
